@@ -1,0 +1,172 @@
+# Default values for metrics.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/awakari/metrics
+  pullPolicy: Always
+  tag: "latest"
+imagePullSecrets:
+  - name: github-registry
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 50051
+  http:
+    port: 8080
+  metrics:
+    port: 9090
+
+ingress:
+  enabled: true
+  corsAllowOrigin: ""
+  # limits are per source IP address
+  limit:
+    connections: 1000
+    rate:
+      second: 100
+      minute: 1000
+  hosts:
+    - host: metrics.local
+      cookie:
+        maxAge: "24h"
+        path: "/"
+        secure: true
+        httpOnly: true
+        secret:
+          name: "api-cookie"
+          key: "secret"
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: secret-metrics-tls-server
+      hosts:
+        - metrics.local
+
+resources:
+  requests:
+    cpu: 1m
+    memory: 16Mi
+  limits:
+    cpu: 1000m
+    memory: 128Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationValue: 100m
+  targetMemoryUtilizationValue: 128Mi
+
+priority:
+  class: "awk-critical"
+  value: 1000
+  preemptionPolicy: "PreemptLowerPriority"
+
+nodeSelector: {}
+
+tolerations: []
+
+api:
+  source:
+    activitypub:
+      uri: "int-activitypub:50051"
+    feeds:
+      uri: "source-feeds:50051"
+    sites:
+      uri: "source-sites:50051"
+    telegram:
+      uri: "source-telegram:50051"
+      fmtUriReplica: "source-telegram-%d:50051"
+  reader:
+    uri: "reader:50051"
+  interests:
+    uri: "interests-api:50051"
+    conn:
+      count:
+        init: 1
+        max: 2
+      idleTimeout: "15m"
+  resolver:
+    internal:
+      name: "awkinternal"
+      secret: "resolver-internal-attr-val"
+  events:
+    uri: "events:50051"
+    conn:
+      count:
+        init: 1
+        max: 10
+      idleTimeout: "15m"
+    topic: "published"
+    limit: 100000
+  tgbot:
+    uri: "bot-telegram:50051"
+  http:
+    readerPollTimeout: "15m"
+  prometheus:
+    protocol: "http"
+    host: "prometheus-server"
+    port: "80"
+  usage:
+    uri: "usage:50051"
+    conn:
+      count:
+        init: 1
+        max: 10
+      idleTimeout: "15m"
+cert:
+  acme:
+    email: "awakari@awakari.com"
+    server: "https://acme-staging-v02.api.letsencrypt.org/directory"
+  issuer:
+    name: letsencrypt-staging
+limits:
+  default:
+    # comma-separated list of groups
+    groups: "default"
+    user:
+      publishMessages: 4
+      interests: 1
+  max:
+    user:
+      publishMessages: 3600
+  reset:
+    disabled: false
+    schedule: "55 * * * *"
+    image: "fullstorydev/grpcurl:v1.9.1-alpine"
+    args:
+      - "-plaintext"
+      - "-d"
+      - "{}"
+    endpoint: "awakari.metrics.Service/SetMostReadLimits"
+log:
+  # https://pkg.go.dev/golang.org/x/exp/slog#Level
+  level: -4

@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ include "metrics.fullname" . }}-limits-reset"
+spec:
+  schedule: "{{ .Values.limits.reset.schedule }}"
+  jobTemplate:
+    spec:
+      suspend: {{ .Values.limits.reset.disabled }}
+      template:
+        spec:
+          containers:
+            - name: "{{ include "metrics.fullname" . }}-limits-reset"
+              image: "{{ .Values.limits.reset.image }}"
+              args:
+                {{ range $arg := .Values.limits.reset.args }}
+                - "{{ $arg }}"
+                {{ end }}
+                - "{{ include "metrics.fullname" . }}:{{ .Values.service.port }}"
+                - "{{ .Values.limits.reset.endpoint }}"
+          restartPolicy: OnFailure

@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package awakari.metrics;
+
+option go_package = "api/grpc";
+
+service Service {
+  rpc SetMostReadLimits(SetMostReadLimitsRequest) returns (SetMostReadLimitsResponse);
+}
+
+message SetMostReadLimitsRequest {
+}
+
+message SetMostReadLimitsResponse {
+  map<string, int64> limitBySource = 1;
+}

@@ -1,0 +1,26 @@
+ingress:
+  corsAllowOrigin: "https://awakari.com"
+  hosts:
+    - host: metrics.awakari.com
+      cookie:
+        maxAge: "24h"
+        path: "/"
+        secure: true
+        httpOnly: true
+        secret:
+          name: "api-cookie"
+          key: "secret"
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+    - secretName: secret-metrics-tls-server
+      hosts:
+        - metrics.awakari.com
+
+# prod
+cert:
+  acme:
+    server: "https://acme-v02.api.letsencrypt.org/directory"
+  issuer:
+    name: letsencrypt
