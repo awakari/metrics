@@ -2,7 +2,7 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: {{ .Values.cert.issuer.name }}
+  name: "{{ .Values.cert.issuer.name }}-metrics"
 spec:
   acme:
     server: {{ .Values.cert.acme.server }}

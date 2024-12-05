@@ -62,8 +62,4 @@ jobs:
         run: |
           helm upgrade --install ${COMPONENT} ${COMPONENT}-0.0.0.tgz \
             --values helm/metrics/values-awakari-com.yaml \
-            --set-string podAnnotations.commit=$(git rev-parse --short HEAD) \
-            --set limits.db.tls.enabled=true \
-            --set limits.db.tls.insecure=true \
-            --set permits.db.tls.enabled=true \
-            --set permits.db.tls.insecure=true
+            --set-string podAnnotations.commit=$(git rev-parse --short HEAD)
