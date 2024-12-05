@@ -25,9 +25,7 @@ func Serve(
 	svcSrcTg telegram.Service,
 	svcSrcAp activitypub.Service,
 ) (err error) {
-	adminSrv := grpc.NewServer()
-	reflection.Register(adminSrv)
-	grpc_health_v1.RegisterHealthServer(adminSrv, health.NewServer())
+	srv := grpc.NewServer()
 	controllerAdmin := NewController(
 		svcLimits,
 		svcMetrics,
@@ -39,12 +37,12 @@ func Serve(
 		svcSrcAp,
 		cfg.Limits.Default.Groups[0],
 	)
-	RegisterServiceServer(adminSrv, controllerAdmin)
-	reflection.Register(adminSrv)
-	grpc_health_v1.RegisterHealthServer(adminSrv, health.NewServer())
-	adminConn, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Api.Port))
+	RegisterServiceServer(srv, controllerAdmin)
+	reflection.Register(srv)
+	grpc_health_v1.RegisterHealthServer(srv, health.NewServer())
+	conn, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Api.Port))
 	if err == nil {
-		err = adminSrv.Serve(adminConn)
+		err = srv.Serve(conn)
 	}
 	return
 }
