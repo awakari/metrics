@@ -35,28 +35,14 @@ spec:
               value: "{{ .Values.service.port }}"
             - name: API_HTTP_PORT
               value: "{{ .Values.service.http.port }}"
-            - name: API_HTTP_READER_POLL_TIMEOUT
-              value: "{{ .Values.api.http.readerPollTimeout }}"
-            - name: CACHE_LOCAL_SIZE
-              value: "{{ .Values.cache.local.size }}"
-            - name: CACHE_LOCAL_TTL
-              value: "{{ .Values.cache.local.ttl }}"
-            - name: CACHE_ADDR
-              value: "{{ .Values.cache.addr }}"
-            - name: CACHE_PASSWORD
-              value: "{{ .Values.cache.password }}"
             - name: LIMITS_DEFAULT_GROUPS
               value: {{ .Values.limits.default.groups }}
             - name: LIMITS_DEFAULT_USER_PUBLISH_MESSAGES
               value: "{{ .Values.limits.default.user.publishMessages }}"
-            - name: LIMITS_DEFAULT_USER_INTERESTS
-              value: "{{ .Values.limits.default.user.interests }}"
             - name: LIMITS_MAX_USER_PUBLISH_MESSAGES
               value: "{{ .Values.limits.max.user.publishMessages }}"
             - name: LOG_LEVEL
               value: "{{ .Values.log.level }}"
-            - name: API_READER_URI
-              value: "{{ .Values.api.reader.uri }}"
             - name: API_INTERESTS_URI
               value: "{{ .Values.api.interests.uri }}"
             - name: API_INTERESTS_CONN_COUNT_INIT
@@ -65,15 +51,6 @@ spec:
               value: "{{ .Values.api.interests.conn.count.max }}"
             - name: API_INTERESTS_CONN_IDLE_TIMEOUT
               value: "{{ .Values.api.interests.conn.idleTimeout }}"
-            - name: API_WRITER_INTERNAL_NAME
-              value: "{{ .Values.api.resolver.internal.name }}"
-            - name: API_WRITER_INTERNAL_VALUE
-              valueFrom:
-                secretKeyRef:
-                  name: "{{ .Values.api.resolver.internal.secret }}"
-                  key: "{{ .Values.api.resolver.internal.name }}"
-            - name: API_TGBOT_URI
-              value: "{{ .Values.api.tgbot.uri }}"
             - name: API_SOURCE_ACTIVITYPUB_URI
               value: "{{ .Values.api.source.activitypub.uri }}"
             - name: API_SOURCE_FEEDS_URI
@@ -82,8 +59,6 @@ spec:
               value: "{{ .Values.api.source.sites.uri }}"
             - name: API_SOURCE_TELEGRAM_URI
               value: "{{ .Values.api.source.telegram.uri }}"
-            - name: API_SOURCE_TELEGRAM_FMT_URI_REPLICA
-              value: "{{ .Values.api.source.telegram.fmtUriReplica }}"
             - name: API_PROMETHEUS_URI
               value: "{{ .Values.api.prometheus.protocol}}://{{ .Values.api.prometheus.host }}:{{ .Values.api.prometheus.port }}"
             {{- range .Values.ingress.hosts }}
@@ -103,42 +78,6 @@ spec:
                   name: "{{ .cookie.secret.name }}"
                   key: "{{ .cookie.secret.key }}"
             {{- end }}
-            - name: API_EVENTS_URI
-              value: "{{ .Values.api.events.uri }}"
-            - name: API_EVENTS_TOPIC
-              value: "{{ .Values.api.events.topic }}"
-            - name: API_EVENTS_LIMIT
-              value: "{{ .Values.api.events.limit }}"
-            - name: API_EVENTS_CONN_COUNT_INIT
-              value: "{{ .Values.api.events.conn.count.init }}"
-            - name: API_EVENTS_CONN_COUNT_MAX
-              value: "{{ .Values.api.events.conn.count.max }}"
-            - name: API_EVENTS_CONN_IDLE_TIMEOUT
-              value: "{{ .Values.api.events.conn.idleTimeout }}"
-            - name: API_PATREON_CLIENT_ID
-              value: "{{ .Values.api.patreon.client.id }}"
-            - name: API_PATREON_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: "metrics-patreon"
-                  key: "client-secret"
-            - name: API_PATREON_WEBHOOK_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: "metrics-patreon"
-                  key: "webhook-secret"
-            - name: API_PATREON_ENDPOINT_BASE
-              value: "{{ .Values.api.patreon.endpoint.base }}"
-            - name: API_PATREON_ENDPOINT_TOKEN
-              value: "{{ .Values.api.patreon.endpoint.token }}"
-            - name: API_PATREON_REDIRECT_URI_TOKEN
-              value: "{{ .Values.api.patreon.redirect.uri.token }}"
-            - name: API_PATREON_REDIRECT_URI_LOGIN
-              value: "{{ .Values.api.patreon.redirect.uri.login }}"
-            - name: API_PATREON_CAMPAIGN_ID
-              value: "{{ .Values.api.patreon.campaign.id }}"
-            - name: API_PATREON_LIMITS_INTERESTS
-              value: "{{ .Values.api.patreon.limits.interests }}"
             - name: API_USAGE_URI
               value: "{{ .Values.api.usage.uri }}"
             - name: API_USAGE_CONN_COUNT_INIT
