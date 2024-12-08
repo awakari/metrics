@@ -28,8 +28,8 @@ metadata:
     nginx.ingress.kubernetes.io/limit-connections: "{{ .Values.ingress.limit.connections }}"
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-origin: "{{ .Values.ingress.corsAllowOrigin }}"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "HEAD, OPTIONS, GET, POST"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "If-None-Match"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "HEAD, OPTIONS, GET"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Accept,Accept-Encoding,Accept-Language,Connection,Host,Cookie,If-None-Match,User-Agent,X-Awakari-Group-Id,X-Awakari-User-Id"
 spec:
   {{- if and .Values.ingress.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingress.className }}
