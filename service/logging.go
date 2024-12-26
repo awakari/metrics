@@ -51,6 +51,6 @@ func (l logging) GetEventAttributeValuesByName(ctx context.Context, name string)
 
 func (l logging) GetDuration(ctx context.Context, metricName string, quantile float64, t time.Duration) (dSeconds float64, errs error) {
 	dSeconds, errs = l.svc.GetDuration(ctx, metricName, quantile, t)
-	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetDuration(%s, %f, %t): %f, %s", metricName, quantile, t, dSeconds, errs))
+	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetDuration(%s, %f, %s): %f, %s", metricName, quantile, t, dSeconds, errs))
 	return
 }

@@ -17,7 +17,6 @@ type Handler interface {
 	GetEventAttributeValuesByName(ctx *gin.Context)
 	GetPublishRate(ctx *gin.Context)
 	GetReadStatus(ctx *gin.Context)
-	GetPublishersCount(ctx *gin.Context)
 	GetFollowersCount(ctx *gin.Context)
 	GetCoreDuration(ctx *gin.Context)
 	GetTopInterests(ctx *gin.Context)
@@ -134,16 +133,6 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 		s.SourcesMostRead[k] = r
 	}
 	ctx.JSON(http.StatusOK, s)
-	return
-}
-
-func (h handler) GetPublishersCount(ctx *gin.Context) {
-	uniqPublishers, err := h.svcMetrics.GetNumberHistory(ctx, "awk_pub_sources_recent_total")
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
-		return
-	}
-	ctx.JSON(http.StatusOK, uniqPublishers)
 	return
 }
 
