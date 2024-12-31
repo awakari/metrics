@@ -30,7 +30,6 @@ type handler struct {
 
 var attrNamesBlackList = map[string]bool{
 	"awakariuserid": true,
-	"awkhash":       true,
 	"awkinternal":   true,
 	"evtid":         true,
 	"evtlink":       true,
