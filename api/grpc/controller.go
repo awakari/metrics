@@ -66,7 +66,7 @@ func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimit
 	if c.svc != nil {
 		resp.LimitBySource = make(map[string]int64)
 		var rateSum service.RateAverage
-		rateSum, err = c.svc.GetRateAverage(ctx, "awk_reader_read_count", "service")
+		err = c.svc.GetRateAverage(ctx, "awk_reader_read_count", "service", &rateSum)
 		if err == nil {
 			rateBySrc, err = c.svc.GetRelativeRateByLabel(ctx, rateSum, "awk_reader_sources_read_count", "source")
 		}

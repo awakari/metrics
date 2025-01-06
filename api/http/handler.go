@@ -85,6 +85,7 @@ func (h handler) GetEventAttributeTypes(ctx *gin.Context) {
 	}
 	switch err {
 	case nil:
+		ctx.Header("Cache-Control", "max-age=300, public")
 		ctx.JSON(http.StatusOK, attrs)
 	default:
 		fmt.Printf("Get prometheus metrics failure(s): %s", err)
@@ -98,6 +99,7 @@ func (h handler) GetEventAttributeValuesByName(ctx *gin.Context) {
 	vals, err := h.svcMetrics.GetEventAttributeValuesByName(ctx, name)
 	switch err {
 	case nil:
+		ctx.Header("Cache-Control", "max-age=300, public")
 		ctx.JSON(http.StatusOK, vals)
 	default:
 		fmt.Printf("Get prometheus metrics failure(s): %s", err)
@@ -107,11 +109,13 @@ func (h handler) GetEventAttributeValuesByName(ctx *gin.Context) {
 }
 
 func (h handler) GetPublishRate(ctx *gin.Context) {
-	pubRate, err := h.svcMetrics.GetRateAverage(ctx, "awk_published_events_count", "service")
+	var pubRate service.RateAverage
+	err := h.svcMetrics.GetRateAverage(ctx, "awk_published_events_count", "service", &pubRate)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
+	ctx.Header("Cache-Control", "max-age=300, public")
 	ctx.JSON(http.StatusOK, pubRate)
 	return
 }
@@ -121,7 +125,7 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 		SourcesMostRead: make(map[string]service.RateAverage),
 	}
 	var err error
-	s.ReadRate, err = h.svcMetrics.GetRateAverage(ctx, "awk_reader_read_count", "service")
+	err = h.svcMetrics.GetRateAverage(ctx, "awk_reader_read_count", "service", &s.ReadRate)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
@@ -131,6 +135,7 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 	for k, r := range srcs {
 		s.SourcesMostRead[k] = r
 	}
+	ctx.Header("Cache-Control", "max-age=300, public")
 	ctx.JSON(http.StatusOK, s)
 	return
 }
@@ -141,6 +146,7 @@ func (h handler) GetFollowersCount(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
+	ctx.Header("Cache-Control", "max-age=300, public")
 	ctx.JSON(http.StatusOK, uniqFollowers)
 	return
 }
@@ -175,6 +181,7 @@ func (h handler) GetCoreDuration(ctx *gin.Context) {
 	}()
 
 	wg.Wait()
+	ctx.Header("Cache-Control", "max-age=300, public")
 	ctx.JSON(http.StatusOK, dur)
 	return
 }
@@ -218,6 +225,7 @@ func (h handler) GetTopInterests(ctx *gin.Context) {
 		return
 	}
 
+	ctx.Header("Cache-Control", "max-age=300, public")
 	ctx.JSON(http.StatusOK, topInterests)
 	return
 }

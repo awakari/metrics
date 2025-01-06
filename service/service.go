@@ -6,11 +6,12 @@ import (
 	"fmt"
 	apiPromV1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+	"sync"
 	"time"
 )
 
 type Service interface {
-	GetRateAverage(ctx context.Context, metricName string, sumBy string) (rate RateAverage, errs error)
+	GetRateAverage(ctx context.Context, metricName string, sumBy string, rate *RateAverage) (errs error)
 	GetNumberHistory(ctx context.Context, metricName string) (nh NumberHistory, errs error)
 	GetRelativeRateByLabel(ctx context.Context, rateSum RateAverage, metricName string, key string) (rateByKey map[string]RateAverage, errs error)
 	GetEventAttributeTypes(ctx context.Context, metric, sumBy, period string) (attrs Attributes, err error)
@@ -31,57 +32,76 @@ func NewService(apiProm apiPromV1.API) Service {
 	}
 }
 
-func (svc service) GetRateAverage(ctx context.Context, metricName string, sumBy string) (rate RateAverage, errs error) {
+func (svc service) GetRateAverage(ctx context.Context, metricName string, sumBy string, rate *RateAverage) (errs error) {
 
 	now := time.Now().UTC()
+	wg := sync.WaitGroup{}
 
-	q := fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "5m")
-	v, _, err := svc.apiProm.Query(ctx, q, now)
-	if err == nil {
-		if v.Type() == model.ValVector {
-			if vv := v.(model.Vector); len(vv) > 0 {
-				rate.Min5 = float64(vv[0].Value)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		q := fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "5m")
+		v, _, err := svc.apiProm.Query(ctx, q, now)
+		if err == nil {
+			if v.Type() == model.ValVector {
+				if vv := v.(model.Vector); len(vv) > 0 {
+					rate.Min5 = float64(vv[0].Value)
+				}
 			}
+		} else {
+			errs = errors.Join(errs, err)
 		}
-	} else {
-		errs = errors.Join(errs, err)
-	}
+	}()
 
-	q = fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "1h")
-	v, _, err = svc.apiProm.Query(ctx, q, now)
-	if err == nil {
-		if v.Type() == model.ValVector {
-			if vv := v.(model.Vector); len(vv) > 0 {
-				rate.Hour = float64(vv[0].Value)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		q := fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "1h")
+		v, _, err := svc.apiProm.Query(ctx, q, now)
+		if err == nil {
+			if v.Type() == model.ValVector {
+				if vv := v.(model.Vector); len(vv) > 0 {
+					rate.Hour = float64(vv[0].Value)
+				}
 			}
+		} else {
+			errs = errors.Join(errs, err)
 		}
-	} else {
-		errs = errors.Join(errs, err)
-	}
+	}()
 
-	q = fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "1d")
-	v, _, err = svc.apiProm.Query(ctx, q, now)
-	if err == nil {
-		if v.Type() == model.ValVector {
-			if vv := v.(model.Vector); len(vv) > 0 {
-				rate.Day = float64(vv[0].Value)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		q := fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "1d")
+		v, _, err := svc.apiProm.Query(ctx, q, now)
+		if err == nil {
+			if v.Type() == model.ValVector {
+				if vv := v.(model.Vector); len(vv) > 0 {
+					rate.Day = float64(vv[0].Value)
+				}
 			}
+		} else {
+			errs = errors.Join(errs, err)
 		}
-	} else {
-		errs = errors.Join(errs, err)
-	}
+	}()
 
-	q = fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "30d")
-	v, _, err = svc.apiProm.Query(ctx, q, now)
-	if err == nil {
-		if v.Type() == model.ValVector {
-			if vv := v.(model.Vector); len(vv) > 0 {
-				rate.Month = float64(vv[0].Value)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		q := fmt.Sprintf(fmtQuerySumRate, sumBy, metricName, "30d")
+		v, _, err := svc.apiProm.Query(ctx, q, now)
+		if err == nil {
+			if v.Type() == model.ValVector {
+				if vv := v.(model.Vector); len(vv) > 0 {
+					rate.Month = float64(vv[0].Value)
+				}
 			}
+		} else {
+			errs = errors.Join(errs, err)
 		}
-	} else {
-		errs = errors.Join(errs, err)
-	}
+	}()
+
+	wg.Wait()
 
 	return
 }

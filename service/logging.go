@@ -19,8 +19,8 @@ func NewLogging(svc Service, log *slog.Logger) Service {
 		log: log,
 	}
 }
-func (l logging) GetRateAverage(ctx context.Context, metricName string, sumBy string) (rate RateAverage, errs error) {
-	rate, errs = l.svc.GetRateAverage(ctx, metricName, sumBy)
+func (l logging) GetRateAverage(ctx context.Context, metricName string, sumBy string, rate *RateAverage) (errs error) {
+	errs = l.svc.GetRateAverage(ctx, metricName, sumBy, rate)
 	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetRateAverage(%s, %s): %v, %s", metricName, sumBy, rate, errs))
 	return
 }
