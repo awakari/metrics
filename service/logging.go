@@ -19,9 +19,9 @@ func NewLogging(svc Service, log *slog.Logger) Service {
 		log: log,
 	}
 }
-func (l logging) GetRateAverage(ctx context.Context, metricName string, sumBy string, rate *RateAverage) (errs error) {
-	errs = l.svc.GetRateAverage(ctx, metricName, sumBy, rate)
-	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetRateAverage(%s, %s): %v, %s", metricName, sumBy, rate, errs))
+func (l logging) GetRateAverage(ctx context.Context, metricName string, sumBy string, period string) (rate float64, err error) {
+	rate, err = l.svc.GetRateAverage(ctx, metricName, sumBy, period)
+	l.log.Log(ctx, util.LogLevel(err), fmt.Sprintf("service.GetRateAverage(%s, %s, %s): %f, %s", metricName, sumBy, period, rate, err))
 	return
 }
 
@@ -31,9 +31,9 @@ func (l logging) GetNumberHistory(ctx context.Context, metricName string) (nh Nu
 	return
 }
 
-func (l logging) GetRelativeRateByLabel(ctx context.Context, rateSum RateAverage, metricName string, key string) (rateByKey map[string]RateAverage, errs error) {
-	rateByKey, errs = l.svc.GetRelativeRateByLabel(ctx, rateSum, metricName, key)
-	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetRelativeRateByLabel(%v, %s, %s): %d, %s", rateSum, metricName, key, len(rateByKey), errs))
+func (l logging) GetRelativeRateByLabel(ctx context.Context, rateSum float64, metricName string, key string, period string) (rateByKey map[string]float64, errs error) {
+	rateByKey, errs = l.svc.GetRelativeRateByLabel(ctx, rateSum, metricName, key, period)
+	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetRelativeRateByLabel(%v, %s, %s, %s): %d, %s", rateSum, metricName, key, period, len(rateByKey), errs))
 	return
 }
 

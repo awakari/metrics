@@ -109,29 +109,30 @@ func (h handler) GetEventAttributeValuesByName(ctx *gin.Context) {
 }
 
 func (h handler) GetPublishRate(ctx *gin.Context) {
-	var pubRate service.RateAverage
-	err := h.svcMetrics.GetRateAverage(ctx, "awk_published_events_count", "service", &pubRate)
+	period := ctx.Param("period")
+	pubRate, err := h.svcMetrics.GetRateAverage(ctx, "awk_published_events_count", "service", period)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
 	ctx.Header("Cache-Control", "max-age=300, public")
-	ctx.JSON(http.StatusOK, pubRate)
+	ctx.JSON(http.StatusOK, map[string]float64{"value": pubRate})
 	return
 }
 
 func (h handler) GetReadStatus(ctx *gin.Context) {
+	period := ctx.Param("period")
 	s := service.ReadStatus{
-		SourcesMostRead: make(map[string]service.RateAverage),
+		SourcesMostRead: make(map[string]float64),
 	}
 	var err error
-	err = h.svcMetrics.GetRateAverage(ctx, "awk_reader_read_count", "service", &s.ReadRate)
+	s.ReadRate, err = h.svcMetrics.GetRateAverage(ctx, "awk_reader_read_count", "service", period)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	var srcs map[string]service.RateAverage
-	srcs, err = h.svcMetrics.GetRelativeRateByLabel(ctx, s.ReadRate, "awk_reader_sources_read_count", "source")
+	var srcs map[string]float64
+	srcs, err = h.svcMetrics.GetRelativeRateByLabel(ctx, s.ReadRate, "awk_reader_sources_read_count", "source", period)
 	for k, r := range srcs {
 		s.SourcesMostRead[k] = r
 	}

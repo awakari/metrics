@@ -62,18 +62,18 @@ func NewController(
 
 func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimitsRequest) (resp *SetMostReadLimitsResponse, err error) {
 	resp = &SetMostReadLimitsResponse{}
-	var rateBySrc map[string]service.RateAverage
+	var rateBySrc map[string]float64
 	if c.svc != nil {
 		resp.LimitBySource = make(map[string]int64)
-		var rateSum service.RateAverage
-		err = c.svc.GetRateAverage(ctx, "awk_reader_read_count", "service", &rateSum)
+		var rateSum float64
+		rateSum, err = c.svc.GetRateAverage(ctx, "awk_reader_read_count", "service", "1d")
 		if err == nil {
-			rateBySrc, err = c.svc.GetRelativeRateByLabel(ctx, rateSum, "awk_reader_sources_read_count", "source")
+			rateBySrc, err = c.svc.GetRelativeRateByLabel(ctx, rateSum, "awk_reader_sources_read_count", "source", "1d")
 		}
 	}
 	if err == nil && len(rateBySrc) > 0 {
 		for srcUrl, rateRel := range rateBySrc {
-			if rateRel.Day > 0 {
+			if rateRel > 0 {
 				var groupId string
 				var userId string
 				switch {
@@ -137,7 +137,7 @@ func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimit
 				case errors.Is(err, limits.ErrNotFound):
 					fallthrough
 				case !l.Expires.IsZero() && l.Expires.Before(time.Now().UTC().Add(limitAutoExpirationThreshold)):
-					l.Count = c.pubMin + int64(float64(c.pubMax)*rateRel.Day)
+					l.Count = c.pubMin + int64(float64(c.pubMax)*rateRel)
 					l.Expires = time.Now().UTC().Add(limitAutoExpirationDefault)
 					err = c.svcLimits.Set(ctx, groupId, srcUrl, model.SubjectPublishEvents, l.Count, l.Expires)
 					if err == nil {

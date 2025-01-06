@@ -135,8 +135,8 @@ func main() {
 	handlerStatus := apiHttp.NewHandler(svc, clientInterests, cfg.Limits.Default.Groups)
 	r.
 		Group("/v1/public", handlerCookies.Handle).
-		GET("/pub-rate", handlerStatus.GetPublishRate).
-		GET("/read", handlerStatus.GetReadStatus).
+		GET("/pub-rate/:period", handlerStatus.GetPublishRate).
+		GET("/read/:period", handlerStatus.GetReadStatus).
 		GET("/followers", handlerStatus.GetFollowersCount).
 		GET("/top-interests", handlerStatus.GetTopInterests).
 		GET("/duration", handlerStatus.GetCoreDuration)
