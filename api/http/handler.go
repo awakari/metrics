@@ -118,9 +118,16 @@ func (h handler) GetPublishRate(ctx *gin.Context) {
 		return
 	}
 	d, err := time.ParseDuration(period)
-	if err != nil {
-		d = 24 * time.Hour // max
+	switch {
+	case err != nil:
+		d = 1 * time.Hour // max
 		err = nil
+	case d >= 1*time.Hour:
+		d = 1 * time.Hour
+	case d >= 15*time.Minute && d < 1*time.Hour:
+		d = 15 * time.Minute
+	case d < 15*time.Minute:
+		d = 5 * time.Minute
 	}
 	ctx.Header("Cache-Control", fmt.Sprintf("must-revalidate, public, max-age=%d", int(d.Seconds())))
 	ctx.Header("Date", time.Now().Format(http.TimeFormat))
@@ -145,9 +152,16 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 		s.SourcesMostRead[k] = r
 	}
 	d, err := time.ParseDuration(period)
-	if err != nil {
-		d = 24 * time.Hour // max
+	switch {
+	case err != nil:
+		d = 1 * time.Hour // max
 		err = nil
+	case d >= 1*time.Hour:
+		d = 1 * time.Hour
+	case d >= 15*time.Minute && d < 1*time.Hour:
+		d = 15 * time.Minute
+	case d < 15*time.Minute:
+		d = 5 * time.Minute
 	}
 	ctx.Header("Cache-Control", fmt.Sprintf("must-revalidate, public, max-age=%d", int(d.Seconds())))
 	ctx.Header("Date", time.Now().Format(http.TimeFormat))
