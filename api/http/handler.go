@@ -86,6 +86,7 @@ func (h handler) GetEventAttributeTypes(ctx *gin.Context) {
 	switch err {
 	case nil:
 		ctx.Header("Cache-Control", "max-age=300, public")
+		ctx.Header("Date", time.Now().Format(http.TimeFormat))
 		ctx.JSON(http.StatusOK, attrs)
 	default:
 		fmt.Printf("Get prometheus metrics failure(s): %s", err)
@@ -100,6 +101,7 @@ func (h handler) GetEventAttributeValuesByName(ctx *gin.Context) {
 	switch err {
 	case nil:
 		ctx.Header("Cache-Control", "max-age=300, public")
+		ctx.Header("Date", time.Now().Format(http.TimeFormat))
 		ctx.JSON(http.StatusOK, vals)
 	default:
 		fmt.Printf("Get prometheus metrics failure(s): %s", err)
@@ -115,7 +117,13 @@ func (h handler) GetPublishRate(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	ctx.Header("Cache-Control", "max-age=300, public")
+	d, err := time.ParseDuration(period)
+	if err != nil {
+		d = 24 * time.Hour // max
+		err = nil
+	}
+	ctx.Header("Cache-Control", fmt.Sprintf("must-revalidate, public, max-age=%d", int(d.Seconds())))
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
 	ctx.JSON(http.StatusOK, map[string]float64{"value": pubRate})
 	return
 }
@@ -136,7 +144,13 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 	for k, r := range srcs {
 		s.SourcesMostRead[k] = r
 	}
-	ctx.Header("Cache-Control", "max-age=300, public")
+	d, err := time.ParseDuration(period)
+	if err != nil {
+		d = 24 * time.Hour // max
+		err = nil
+	}
+	ctx.Header("Cache-Control", fmt.Sprintf("must-revalidate, public, max-age=%d", int(d.Seconds())))
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
 	ctx.JSON(http.StatusOK, s)
 	return
 }
@@ -148,6 +162,7 @@ func (h handler) GetFollowersCount(ctx *gin.Context) {
 		return
 	}
 	ctx.Header("Cache-Control", "max-age=300, public")
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
 	ctx.JSON(http.StatusOK, uniqFollowers)
 	return
 }
@@ -183,6 +198,7 @@ func (h handler) GetCoreDuration(ctx *gin.Context) {
 
 	wg.Wait()
 	ctx.Header("Cache-Control", "max-age=300, public")
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
 	ctx.JSON(http.StatusOK, dur)
 	return
 }
@@ -227,6 +243,7 @@ func (h handler) GetTopInterests(ctx *gin.Context) {
 	}
 
 	ctx.Header("Cache-Control", "max-age=300, public")
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
 	ctx.JSON(http.StatusOK, topInterests)
 	return
 }
