@@ -12,5 +12,6 @@ message SetMostReadLimitsRequest {
 }
 
 message SetMostReadLimitsResponse {
-  map<string, int64> limitBySource = 1;
+  map<string, int64> hourlyLimitBySource = 1;
+  map<string, int64> dailyLimitBySource = 2;
 }

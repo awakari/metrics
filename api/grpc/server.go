@@ -29,8 +29,10 @@ func Serve(
 	controllerAdmin := NewController(
 		svcLimits,
 		svcMetrics,
-		cfg.Limits.Default.User.PublishMessages,
-		cfg.Limits.Max.User.PublishMessages,
+		cfg.Limits.Default.User.Publish.Hourly,
+		cfg.Limits.Default.User.Publish.Daily,
+		cfg.Limits.Max.User.Publish.Hourly,
+		cfg.Limits.Max.User.Publish.Daily,
 		svcSrcFeeds,
 		svcSrcSites,
 		svcSrcTg,

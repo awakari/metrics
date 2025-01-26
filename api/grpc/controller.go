@@ -24,8 +24,10 @@ type Controller interface {
 type controller struct {
 	svcLimits      limits.Service
 	svc            service.Service
-	pubMin         int64
-	pubMax         int64
+	pubMinHourly   int64
+	pubMinDaily    int64
+	pubMaxHourly   int64
+	pubMaxDaily    int64
 	svcFeeds       feeds.Service
 	svcSites       sites.Service
 	svcTg          telegram.Service
@@ -39,8 +41,10 @@ const limitAutoExpirationThreshold = 15 * time.Minute
 func NewController(
 	svcLimits limits.Service,
 	svcMetrics service.Service,
-	pubMin int64,
-	pubMax int64,
+	pubMinHourly int64,
+	pubMinDaily int64,
+	pubMaxHourly int64,
+	pubMaxDaily int64,
 	svcFeeds feeds.Service,
 	svcSites sites.Service,
 	svcTg telegram.Service,
@@ -50,8 +54,10 @@ func NewController(
 	return controller{
 		svcLimits:      svcLimits,
 		svc:            svcMetrics,
-		pubMin:         pubMin,
-		pubMax:         pubMax,
+		pubMinHourly:   pubMinHourly,
+		pubMinDaily:    pubMinDaily,
+		pubMaxHourly:   pubMaxHourly,
+		pubMaxDaily:    pubMaxDaily,
 		svcFeeds:       svcFeeds,
 		svcSites:       svcSites,
 		svcTg:          svcTg,
@@ -64,7 +70,8 @@ func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimit
 	resp = &SetMostReadLimitsResponse{}
 	var rateBySrc map[string]float64
 	if c.svc != nil {
-		resp.LimitBySource = make(map[string]int64)
+		resp.HourlyLimitBySource = make(map[string]int64)
+		resp.DailyLimitBySource = make(map[string]int64)
 		var rateSum float64
 		rateSum, err = c.svc.GetRateAverage(ctx, "awk_reader_read_count", "service", "1d")
 		if err == nil {
@@ -131,21 +138,41 @@ func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimit
 					fmt.Printf("SetMostReadLimits: source %s is sharing the limit of %s, skipping the automatic limit setting\n", srcUrl, userId)
 					continue
 				}
+
 				var l model.Limit
-				l, err = c.svcLimits.GetRaw(ctx, groupId, srcUrl, model.SubjectPublishEvents)
+
+				// hourly limit
+				l, err = c.svcLimits.GetRaw(ctx, groupId, srcUrl, model.SubjectPublishHourly)
 				switch {
 				case errors.Is(err, limits.ErrNotFound):
 					fallthrough
 				case !l.Expires.IsZero() && l.Expires.Before(time.Now().UTC().Add(limitAutoExpirationThreshold)):
-					l.Count = c.pubMin + int64(float64(c.pubMax)*rateRel)
+					l.Count = c.pubMinHourly + int64(float64(c.pubMaxHourly)*rateRel)
 					l.Expires = time.Now().UTC().Add(limitAutoExpirationDefault)
-					err = c.svcLimits.Set(ctx, groupId, srcUrl, model.SubjectPublishEvents, l.Count, l.Expires)
+					err = c.svcLimits.Set(ctx, groupId, srcUrl, model.SubjectPublishHourly, l.Count, l.Expires)
 					if err == nil {
-						resp.LimitBySource[srcUrl] = l.Count
+						resp.HourlyLimitBySource[srcUrl] = l.Count
 					}
 				default:
 					fmt.Printf("SetMostReadLimits: source %s has a limit that isn't expiring (%s), skipping\n", srcUrl, l.Expires)
 				}
+
+				// daily limit
+				l, err = c.svcLimits.GetRaw(ctx, groupId, srcUrl, model.SubjectPublishDaily)
+				switch {
+				case errors.Is(err, limits.ErrNotFound):
+					fallthrough
+				case !l.Expires.IsZero() && l.Expires.Before(time.Now().UTC().Add(limitAutoExpirationThreshold)):
+					l.Count = c.pubMinDaily + int64(float64(c.pubMaxDaily)*rateRel)
+					l.Expires = time.Now().UTC().Add(limitAutoExpirationDefault)
+					err = c.svcLimits.Set(ctx, groupId, srcUrl, model.SubjectPublishDaily, l.Count, l.Expires)
+					if err == nil {
+						resp.DailyLimitBySource[srcUrl] = l.Count
+					}
+				default:
+					fmt.Printf("SetMostReadLimits: source %s has a limit that isn't expiring (%s), skipping\n", srcUrl, l.Expires)
+				}
+
 				err = nil
 			}
 		}

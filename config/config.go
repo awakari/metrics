@@ -37,12 +37,18 @@ type LimitsConfig struct {
 	Default struct {
 		Groups []string `envconfig:"LIMITS_DEFAULT_GROUPS" default:"" required:"true"`
 		User   struct {
-			PublishMessages int64 `envconfig:"LIMITS_DEFAULT_USER_PUBLISH_MESSAGES" default:"4" required:"true"`
+			Publish struct {
+				Hourly int64 `envconfig:"LIMITS_DEFAULT_USER_PUBLISH_HOURLY" default:"10" required:"true"`
+				Daily  int64 `envconfig:"LIMITS_DEFAULT_USER_PUBLISH_DAILY" default:"100" required:"true"`
+			}
 		}
 	}
 	Max struct {
 		User struct {
-			PublishMessages int64 `envconfig:"LIMITS_MAX_USER_PUBLISH_MESSAGES" default:"1000" required:"true"`
+			Publish struct {
+				Hourly int64 `envconfig:"LIMITS_MAX_USER_PUBLISH_HOURLY" default:"3600" required:"true"`
+				Daily  int64 `envconfig:"LIMITS_MAX_USER_PUBLISH_DAILY" default:"86400" required:"true"`
+			}
 		}
 	}
 }

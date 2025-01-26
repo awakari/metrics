@@ -131,13 +131,17 @@ limits:
     # comma-separated list of groups
     groups: "default"
     user:
-      publishMessages: 4
+      publish:
+        hourly: 10
+        daily: 100
   max:
     user:
-      publishMessages: 3600
+      publish:
+        hourly: 3600
+        daily: 86400
   reset:
     disabled: false
-    schedule: "55 * * * *"
+    schedule: "55 23 * * *"
     image: "fullstorydev/grpcurl:v1.9.1-alpine"
     args:
       - "-plaintext"
