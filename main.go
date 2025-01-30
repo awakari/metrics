@@ -10,6 +10,7 @@ import (
 	apiGrpcSrcSites "github.com/awakari/metrics/api/grpc/source/sites"
 	apiGrpcSrcTg "github.com/awakari/metrics/api/grpc/source/telegram"
 	apiHttp "github.com/awakari/metrics/api/http"
+	apiHttpSrc "github.com/awakari/metrics/api/http/src"
 	"github.com/awakari/metrics/config"
 	"github.com/awakari/metrics/service"
 	"github.com/gin-gonic/gin"
@@ -145,6 +146,12 @@ func main() {
 		GET("/types", handlerStatus.GetEventAttributeTypes).
 		GET("/values/:name", handlerStatus.GetEventAttributeValuesByName)
 
+	handlerSrc := apiHttpSrc.NewHandler(svc)
+	r.
+		Group("/v1/src", handlerCookies.Handle).
+		GET("/feeds", handlerSrc.FeedCount).
+		GET("/socials", handlerSrc.SocialCount).
+		GET("/realtime", handlerSrc.RealtimeCount)
 	go func() {
 		err = r.Run(fmt.Sprintf(":%d", cfg.Api.Http.Port))
 		if err != nil {
