@@ -91,11 +91,13 @@ message SearchRequest {
 message Cursor {
   string id = 1;
   int64 followers = 2;
+  google.protobuf.Timestamp timeCreated = 3;
 }
 
 enum Sort {
   ID = 0;
   FOLLOWERS = 1;
+  TIME_CREATED = 2;
 }
 
 message SearchResponse {

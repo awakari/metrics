@@ -1,6 +1,7 @@
 package subject
 
 import (
+	"errors"
 	"fmt"
 	"github.com/awakari/metrics/model"
 )
@@ -14,7 +15,7 @@ func Encode(src model.Subject) (dst Subject, err error) {
 	case model.SubjectPublishDaily:
 		dst = Subject_PublishDaily
 	default:
-		err = fmt.Errorf(fmt.Sprintf("invalid subject: %s", src))
+		err = errors.New(fmt.Sprintf("invalid subject: %s", src))
 	}
 	return
 }

@@ -140,6 +140,7 @@ func main() {
 		GET("/read/:period", handlerStatus.GetReadStatus).
 		GET("/followers", handlerStatus.GetFollowersCount).
 		GET("/top-interests", handlerStatus.GetTopInterests).
+		GET("/new-interests", handlerStatus.GetNewInterests).
 		GET("/duration", handlerStatus.GetCoreDuration)
 	r.
 		Group("/v1/attr", handlerCookies.Handle).

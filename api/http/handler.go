@@ -6,6 +6,7 @@ import (
 	"github.com/awakari/metrics/api/grpc/interests"
 	"github.com/awakari/metrics/service"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"math"
 	"net/http"
 	"sync"
@@ -20,6 +21,7 @@ type Handler interface {
 	GetFollowersCount(ctx *gin.Context)
 	GetCoreDuration(ctx *gin.Context)
 	GetTopInterests(ctx *gin.Context)
+	GetNewInterests(ctx *gin.Context)
 }
 
 type handler struct {
@@ -246,6 +248,51 @@ func (h handler) GetTopInterests(ctx *gin.Context) {
 					topInterests[subId] = interests.ReadResponse{
 						Description: respRead.Description,
 						Followers:   respRead.Followers,
+					}
+				}
+			}()
+		}
+		wg.Wait()
+	default:
+		ctx.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	ctx.Header("Cache-Control", "max-age=300, public")
+	ctx.Header("Date", time.Now().Format(http.TimeFormat))
+	ctx.JSON(http.StatusOK, topInterests)
+	return
+}
+
+func (h handler) GetNewInterests(ctx *gin.Context) {
+
+	topInterests := make(map[string]interests.ReadResponse)
+	ctxSubs := auth.SetOutgoingAuthInfo(ctx, h.groupIdDefault, "metrics")
+	resp, err := h.svcInterests.Search(ctxSubs, &interests.SearchRequest{
+		Cursor: &interests.Cursor{
+			Id:          "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
+			TimeCreated: timestamppb.New(time.Now().UTC()),
+		},
+		Limit: 10,
+		Order: interests.Order_DESC,
+		Sort:  interests.Sort_TIME_CREATED,
+	})
+
+	switch err {
+	case nil:
+		var respRead *interests.ReadResponse
+		wg := sync.WaitGroup{}
+		for _, subId := range resp.Ids {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				respRead, err = h.svcInterests.Read(ctxSubs, &interests.ReadRequest{
+					Id: subId,
+				})
+				if err == nil && respRead.Public {
+					topInterests[subId] = interests.ReadResponse{
+						Description: respRead.Description,
+						Created:     respRead.Created,
 					}
 				}
 			}()
