@@ -18,7 +18,7 @@ type Handler interface {
 	GetEventAttributeValuesByName(ctx *gin.Context)
 	GetPublishRate(ctx *gin.Context)
 	GetReadStatus(ctx *gin.Context)
-	GetFollowersCount(ctx *gin.Context)
+	GetSubscriptionsCount(ctx *gin.Context)
 	GetCoreDuration(ctx *gin.Context)
 	GetTopInterests(ctx *gin.Context)
 	GetNewInterests(ctx *gin.Context)
@@ -171,8 +171,8 @@ func (h handler) GetReadStatus(ctx *gin.Context) {
 	return
 }
 
-func (h handler) GetFollowersCount(ctx *gin.Context) {
-	uniqFollowers, err := h.svcMetrics.GetNumberHistory(ctx, "awk_followers_active_distinct_count")
+func (h handler) GetSubscriptionsCount(ctx *gin.Context) {
+	uniqFollowers, err := h.svcMetrics.GetNumberHistory(ctx, "awk_subscriptions_count")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, err)
 		return

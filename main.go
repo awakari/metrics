@@ -138,7 +138,7 @@ func main() {
 		Group("/v1/public", handlerCookies.Handle).
 		GET("/pub-rate/:period", handlerStatus.GetPublishRate).
 		GET("/read/:period", handlerStatus.GetReadStatus).
-		GET("/followers", handlerStatus.GetFollowersCount).
+		GET("/subscriptions", handlerStatus.GetSubscriptionsCount).
 		GET("/top-interests", handlerStatus.GetTopInterests).
 		GET("/new-interests", handlerStatus.GetNewInterests).
 		GET("/duration", handlerStatus.GetCoreDuration)
