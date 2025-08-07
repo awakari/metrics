@@ -12,17 +12,22 @@ import (
 	apiHttp "github.com/awakari/metrics/api/http"
 	apiHttpSrc "github.com/awakari/metrics/api/http/src"
 	"github.com/awakari/metrics/config"
+	"github.com/awakari/metrics/model"
 	"github.com/awakari/metrics/service"
 	"github.com/gin-gonic/gin"
+	"github.com/jellydator/ttlcache/v3"
 	grpcpool "github.com/processout/grpc-go-pool"
 	apiProm "github.com/prometheus/client_golang/api"
 	apiPromV1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log/slog"
 	"net/http"
 	"os"
+	"sync/atomic"
 )
 
 func main() {
@@ -48,7 +53,47 @@ func main() {
 		panic(err)
 	}
 
-	svc := service.NewService(ap)
+	rCounter := prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Name: "awk_reader_read_count",
+			Help: "Awakari Reader: total count of messages been read",
+		},
+	)
+	prometheus.MustRegister(rCounter)
+	rCounterBySrc := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "awk_reader_sources_read_count",
+			Help: "Awakari Reader: most read source read count",
+		},
+		[]string{
+			model.KeySrc,
+		},
+	)
+	prometheus.MustRegister(rCounterBySrc)
+	srcStatsCache := ttlcache.New[string, *atomic.Uint32](
+		ttlcache.WithTTL[string, *atomic.Uint32](cfg.Api.Source.MostRead.Ttl),
+		ttlcache.WithCapacity[string, *atomic.Uint32](cfg.Api.Source.MostRead.Capacity),
+	)
+	metricDuration := promauto.NewHistogram(prometheus.HistogramOpts{
+		Name: "awk_duration",
+		Help: "Awakari core events processing duration",
+		Buckets: []float64{
+			0.1,
+			1,
+			10,
+			100,
+			1000,
+		},
+	})
+
+	svc := service.NewService(
+		ap,
+		cfg.Api.Source.MostRead.Limit,
+		rCounter,
+		rCounterBySrc,
+		srcStatsCache,
+		metricDuration,
+	)
 	svc = service.NewLogging(svc, log)
 
 	connPoolInterests, err := grpcpool.New(

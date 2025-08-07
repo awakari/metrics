@@ -181,6 +181,12 @@ func (c controller) SetMostReadLimits(ctx context.Context, req *SetMostReadLimit
 	return
 }
 
+func (c controller) AccountRead(ctx context.Context, req *AccountReadRequest) (resp *AccountReadResponse, err error) {
+	err = c.svc.AccountRead(ctx, req.Evts, req.Push)
+	err = encodeError(err)
+	return
+}
+
 func encodeError(src error) (dst error) {
 	switch {
 	case src == nil:

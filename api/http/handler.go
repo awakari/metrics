@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/awakari/metrics/api/grpc/auth"
 	"github.com/awakari/metrics/api/grpc/interests"
+	"github.com/awakari/metrics/model"
 	"github.com/awakari/metrics/service"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -139,7 +140,7 @@ func (h handler) GetPublishRate(ctx *gin.Context) {
 
 func (h handler) GetReadStatus(ctx *gin.Context) {
 	period := ctx.Param("period")
-	s := service.ReadStatus{
+	s := model.ReadStatus{
 		SourcesMostRead: make(map[string]float64),
 	}
 	var err error
@@ -186,7 +187,7 @@ func (h handler) GetSubscriptionsCount(ctx *gin.Context) {
 func (h handler) GetCoreDuration(ctx *gin.Context) {
 
 	wg := sync.WaitGroup{}
-	dur := &service.Duration{}
+	dur := &model.Duration{}
 
 	wg.Add(1)
 	go func() {

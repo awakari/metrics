@@ -63,6 +63,12 @@ spec:
               value: "{{ .Values.api.source.sites.uri }}"
             - name: API_SOURCE_TELEGRAM_URI
               value: "{{ .Values.api.source.telegram.uri }}"
+            - name: API_SOURCE_MOST_READ_LIMIT
+              value: "{{ .Values.api.source.mostRead.limit }}"
+            - name: API_SOURCE_MOST_READ_CACHE_CAPACITY
+              value: "{{ .Values.api.source.mostRead.cache.capacity }}"
+            - name: API_SOURCE_MOST_READ_CACHE_TTL
+              value: "{{ .Values.api.source.mostRead.cache.ttl }}"
             - name: API_PROMETHEUS_URI
               value: "{{ .Values.api.prometheus.protocol}}://{{ .Values.api.prometheus.host }}:{{ .Values.api.prometheus.port }}"
             {{- range .Values.ingress.hosts }}

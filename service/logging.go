@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/awakari/metrics/model"
 	"github.com/awakari/metrics/util"
+	"github.com/cloudevents/sdk-go/binding/format/protobuf/v2/pb"
 	"log/slog"
 	"time"
 )
@@ -25,7 +27,7 @@ func (l logging) GetRateAverage(ctx context.Context, metricName string, sumBy st
 	return
 }
 
-func (l logging) GetNumberHistory(ctx context.Context, metricName string) (nh NumberHistory, errs error) {
+func (l logging) GetNumberHistory(ctx context.Context, metricName string) (nh model.NumberHistory, errs error) {
 	nh, errs = l.svc.GetNumberHistory(ctx, metricName)
 	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetNumberHistory(%s): %v, %s", metricName, nh, errs))
 	return
@@ -37,7 +39,7 @@ func (l logging) GetRelativeRateByLabel(ctx context.Context, rateSum float64, me
 	return
 }
 
-func (l logging) GetEventAttributeTypes(ctx context.Context, metric, sumBy, period string) (attrs Attributes, err error) {
+func (l logging) GetEventAttributeTypes(ctx context.Context, metric, sumBy, period string) (attrs model.Attributes, err error) {
 	attrs, err = l.svc.GetEventAttributeTypes(ctx, metric, sumBy, period)
 	l.log.Log(ctx, util.LogLevel(err), fmt.Sprintf("service.GetEventAttributeTypes(%s, %s, %s): %v, %s", metric, sumBy, period, attrs, err))
 	return
@@ -52,5 +54,12 @@ func (l logging) GetEventAttributeValuesByName(ctx context.Context, name string)
 func (l logging) GetDuration(ctx context.Context, metricName string, quantile float64, t time.Duration) (dSeconds float64, errs error) {
 	dSeconds, errs = l.svc.GetDuration(ctx, metricName, quantile, t)
 	l.log.Log(ctx, util.LogLevel(errs), fmt.Sprintf("service.GetDuration(%s, %f, %s): %f, %s", metricName, quantile, t, dSeconds, errs))
+	return
+}
+
+func (l logging) AccountRead(ctx context.Context, evts []*pb.CloudEvent, push bool) (err error) {
+	err = l.svc.AccountRead(ctx, evts, push)
+	ll := util.LogLevel(err)
+	l.log.Log(ctx, ll, fmt.Sprintf("service.AccountRead(%d): %s", len(evts), err))
 	return
 }

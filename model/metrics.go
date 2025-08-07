@@ -1,4 +1,4 @@
-package service
+package model
 
 type NumberHistory struct {
 	Current float64    `json:"current"`

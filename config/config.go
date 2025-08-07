@@ -15,6 +15,11 @@ type Config struct {
 			Feeds       FeedsConfig
 			Sites       SitesConfig
 			Telegram    TelegramConfig
+			MostRead    struct {
+				Limit    uint32        `envconfig:"API_SOURCE_MOST_READ_LIMIT" default:"100" required:"true"`
+				Ttl      time.Duration `envconfig:"API_SOURCE_MOST_READ_CACHE_TTL" default:"24h" required:"true"`
+				Capacity uint64        `envconfig:"API_SOURCE_MOST_READ_CACHE_CAPACITY" default:"100000" required:"true"`
+			}
 		}
 		Interests InterestsConfig
 		Http      struct {
