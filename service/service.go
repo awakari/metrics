@@ -48,12 +48,13 @@ func NewService(
 	dur prometheus.Histogram,
 ) Service {
 	return service{
-		apiProm:          apiProm,
-		readStatsLimit:   int(readStatsLimit),
-		readCounter:      readCounter,
-		readCounterBySrc: readCounterBySrc,
-		readCounterCache: readCounterCache,
-		dur:              dur,
+		apiProm:              apiProm,
+		readStatsLimit:       int(readStatsLimit),
+		readCounter:          readCounter,
+		readCounterBySrc:     readCounterBySrc,
+		readCounterCache:     readCounterCache,
+		readCounterCacheLock: &sync.Mutex{},
+		dur:                  dur,
 	}
 }
 
