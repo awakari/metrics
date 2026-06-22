@@ -79,12 +79,12 @@ func main() {
 		Name: "awk_duration",
 		Help: "Awakari core events processing duration",
 		Buckets: []float64{
-			30,
 			100,
 			300,
 			1000,
 			3000,
 			10000,
+			30000,
 		},
 	})
 
