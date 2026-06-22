@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"sync/atomic"
+
 	apiGrpc "github.com/awakari/metrics/api/grpc"
 	apiGrpcInterests "github.com/awakari/metrics/api/grpc/interests"
 	apiGrpcLimits "github.com/awakari/metrics/api/grpc/limits"
@@ -24,10 +29,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log/slog"
-	"net/http"
-	"os"
-	"sync/atomic"
 )
 
 func main() {
@@ -78,11 +79,12 @@ func main() {
 		Name: "awk_duration",
 		Help: "Awakari core events processing duration",
 		Buckets: []float64{
-			0.1,
-			1,
-			10,
+			30,
 			100,
+			300,
 			1000,
+			3000,
+			10000,
 		},
 	})
 
